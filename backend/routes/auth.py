@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from passlib.context import CryptContext
 
-from database.db import conn, cursor
+from database.db import get_db_connection
 
 router = APIRouter()
 
@@ -33,7 +33,12 @@ class LoginModel(BaseModel):
 @router.post("/signup")
 def signup(user: SignupModel):
 
+    conn = None
+    cursor = None
+
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
         # CHECK IF EMAIL EXISTS
         cursor.execute(
@@ -70,7 +75,6 @@ def signup(user: SignupModel):
         )
 
         cursor.execute(query, values)
-
         conn.commit()
 
         return {
@@ -81,13 +85,17 @@ def signup(user: SignupModel):
         raise http_error
 
     except Exception as e:
-
         print("SIGNUP ERROR:", e)
-
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
 
 
 # ---------------- LOGIN API ----------------
@@ -95,7 +103,12 @@ def signup(user: SignupModel):
 @router.post("/login")
 def login(user: LoginModel):
 
+    conn = None
+    cursor = None
+
     try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
 
         # FIND USER
         cursor.execute(
@@ -139,10 +152,14 @@ def login(user: LoginModel):
         raise http_error
 
     except Exception as e:
-
         print("LOGIN ERROR:", e)
-
         raise HTTPException(
             status_code=500,
             detail=str(e)
         )
+
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()

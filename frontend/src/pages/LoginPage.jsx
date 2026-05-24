@@ -93,12 +93,12 @@ function LoginPage() {
           <div style={styles.circleBottom}></div>
 
           <h1 style={styles.logo}>
-            NovaCart
+            EasyCart
           </h1>
 
           <p style={styles.tagline}>
-            Secure Shopping<br />
-            Smarter Selling
+            Buy Better<br />
+            Sell Smarter
           </p>
 
           <p style={styles.description}>
