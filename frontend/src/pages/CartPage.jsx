@@ -7,7 +7,7 @@ function CartPage() {
 
   const user = JSON.parse(localStorage.getItem("user"));
 
-  // GET CART ITEMS
+ 
   const fetchCart = async () => {
 
     try {
@@ -25,7 +25,7 @@ function CartPage() {
     }
   };
 
-  // LOAD CART
+  
   useEffect(() => {
 
     if (!user) {
@@ -39,7 +39,7 @@ function CartPage() {
 
   }, []);
 
-  // REMOVE ITEM
+  
   const removeItem = async (cartItemId) => {
 
     try {
@@ -95,7 +95,7 @@ function CartPage() {
 
       </div>
 
-      {/* MAIN CONTAINER */}
+      
       <div style={styles.container}>
 
         {/* LEFT SECTION */}
@@ -124,7 +124,7 @@ function CartPage() {
                 style={styles.card}
               >
 
-                {/* IMAGE */}
+                
                 <img
                   src={`http://127.0.0.1:8000/product_img/${item.image_url}`}
                   alt={item.name}
@@ -197,7 +197,13 @@ function CartPage() {
 
           </div>
 
-          <button style={styles.checkoutButton}>
+          <button 
+            style={styles.checkoutButton}
+            onClick={() => {
+              if (cartItems.length === 0) return;
+              window.location.href = `/checkout?from=cart`;
+            }}
+          >
             Proceed To Checkout
           </button>
 
@@ -250,7 +256,7 @@ const styles = {
     margin: 0,
   },
 
-  // MAIN CONTAINER
+  
   container: {
     display: "flex",
     gap: "30px",
@@ -263,7 +269,6 @@ const styles = {
     minWidth: "320px",
   },
 
-  // PRODUCT CARD
   card: {
     display: "flex",
     alignItems: "center",
@@ -326,7 +331,7 @@ const styles = {
     minWidth: "120px",
   },
 
-  // SUMMARY
+ 
   summary: {
     flex: 1,
     minWidth: "320px",
@@ -366,7 +371,7 @@ const styles = {
     cursor: "pointer",
   },
 
-  // EMPTY CART
+ 
   emptyCart: {
     background: "rgba(255,255,255,0.08)",
     padding: "60px",

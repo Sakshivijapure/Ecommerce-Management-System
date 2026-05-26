@@ -29,8 +29,8 @@ def get_cart(user_id: int):
     """
 
     cursor.execute(query, (user_id,))
-    return cursor.fetchall()
-
+    cart_items = cursor.fetchall()
+    return cart_items
 
 @router.delete("/cart/remove/{cart_item_id}")
 def remove_cart_item(cart_item_id: int):
