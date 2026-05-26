@@ -70,6 +70,7 @@ def get_user_orders(user_id: int):
 
         cursor.execute(query, (user_id,))
         rows = cursor.fetchall()
+        connection.commit()
 
         orders_dict = {}
 
@@ -104,6 +105,7 @@ def get_user_orders(user_id: int):
         return list(orders_dict.values())
 
     except Exception as e:
+        connection.rollback()
         return {"error": str(e)}
 
     finally:
@@ -128,7 +130,7 @@ def create_return_request(data: ReturnRequestModel):
         if not data.return_reason or not data.return_reason.strip():
             return {"error": "Return reason is required"}
 
-        
+        # prevent duplicate return
         cursor.execute("""
             SELECT return_id
             FROM return_request
@@ -153,7 +155,7 @@ def create_return_request(data: ReturnRequestModel):
 
         order_id = row["order_id"]
 
-       
+        # insert return request
         cursor.execute("""
             INSERT INTO return_request
             (order_item_id, user_id, return_reason, return_status)
@@ -165,7 +167,7 @@ def create_return_request(data: ReturnRequestModel):
             "REQUESTED"
         ))
 
-        
+        # update order status
         cursor.execute("""
             UPDATE orders
             SET order_status = 'RETURN_REQUESTED'
