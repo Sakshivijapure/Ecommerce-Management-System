@@ -3,20 +3,50 @@ import axios from "axios";
 
 function ProductListingPage() {
 
+  // =========================
+  // USER
+  // =========================
+
+  const user = JSON.parse(
+    localStorage.getItem("user")
+  );
+
+  // =========================
+  // ROLE CHECK FIX
+  // =========================
+
+  useEffect(() => {
+
+    const role = user?.role
+      ?.trim()
+      ?.toLowerCase();
+
+    // SELLER SHOULD NEVER OPEN PRODUCTS PAGE
+    if (role === "seller") {
+
+      window.location.href =
+        "/seller-dashboard";
+    }
+
+  }, []);
+
   const [products, setProducts] = useState([]);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sort, setSort] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const user = JSON.parse(localStorage.getItem("user"));
-
+  // =========================
   // FETCH PRODUCTS
+  // =========================
+
   useEffect(() => {
 
-    let url = "http://127.0.0.1:8000/products";
+    let url =
+      "http://127.0.0.1:8000/products";
 
     if (category !== "All") {
+
       url += `?category_id=${category}`;
     }
 
@@ -36,21 +66,31 @@ function ProductListingPage() {
 
   }, [category]);
 
+  // =========================
   // SEARCH FILTER
-  let filteredProducts = products.filter((product) =>
-    product?.name?.toLowerCase().includes(
-      search.toLowerCase()
-    )
-  );
+  // =========================
 
+  let filteredProducts =
+    products.filter((product) =>
+
+      product?.name
+        ?.toLowerCase()
+        .includes(search.toLowerCase())
+    );
+
+  // =========================
   // SORT
+  // =========================
+
   if (sort === "low") {
+
     filteredProducts.sort(
       (a, b) => a.price - b.price
     );
   }
 
   if (sort === "high") {
+
     filteredProducts.sort(
       (a, b) => b.price - a.price
     );
@@ -60,95 +100,119 @@ function ProductListingPage() {
 
     <div style={styles.page}>
 
-    {/* SIDEBAR */}
-    {sidebarOpen && (
+      {/* SIDEBAR */}
 
-      <div style={styles.sidebar}>
+      {sidebarOpen && (
 
-        <button
-          style={styles.closeSidebarBtn}
-          onClick={() => setSidebarOpen(false)}
-        >
-          ←
-        </button>
+        <div style={styles.sidebar}>
 
-        {/* USER INFO */}
-        <h2 style={styles.sidebarTitle}>
-          👤 {user?.username || "Guest User"}
-        </h2>
+          <button
+            style={styles.closeSidebarBtn}
+            onClick={() =>
+              setSidebarOpen(false)
+            }
+          >
+            ←
+          </button>
 
-        <p style={{ color: "#f3c7d3", marginTop: "-10px" }}>
-          {user?.email}
-        </p>
+          {/* USER INFO */}
 
-        {/* NAV BUTTONS */}
-        <button
-          style={styles.sidebarBtn}
-          onClick={() =>
-            window.location.href = "/cart"
-          }
-        >
-          🛒 Cart
-        </button>
+          <h2 style={styles.sidebarTitle}>
 
-        <button
-          style={styles.sidebarBtn}
-          onClick={() =>
-            window.location.href = "/orders"
-          }
-        >
-          📦 Orders
-        </button>
+            👤 {user?.username || "Guest User"}
 
-        <button
-          style={styles.sidebarBtn}
-          onClick={() =>
-            window.location.href = "/wishlist"
-          }
-        >
-          ❤️ Wishlist
-        </button>
+          </h2>
 
-        {/* LOGOUT */}
-        <button
-          style={{
-            ...styles.sidebarBtn,
-            background: "rgba(255, 0, 60, 0.15)",
-            border: "1px solid rgba(255, 0, 60, 0.3)"
-          }}
-          onClick={() => {
+          <p
+            style={{
+              color: "#f3c7d3",
+              marginTop: "-10px"
+            }}
+          >
+            {user?.email}
+          </p>
 
-            localStorage.removeItem("user");
+          {/* CART */}
 
-            window.location.href = "/login";
+          <button
+            style={styles.sidebarBtn}
+            onClick={() =>
+              window.location.href = "/cart"
+            }
+          >
+            🛒 Cart
+          </button>
 
-          }}
-        >
-          Logout
-        </button>
+          {/* ORDERS */}
 
-      </div>
+          <button
+            style={styles.sidebarBtn}
+            onClick={() =>
+              window.location.href = "/orders"
+            }
+          >
+            📦 Orders
+          </button>
 
-    )}
+          {/* WISHLIST */}
 
+          <button
+            style={styles.sidebarBtn}
+            onClick={() =>
+              window.location.href = "/wishlist"
+            }
+          >
+            ❤️ Wishlist
+          </button>
+
+          {/* LOGOUT */}
+
+          <button
+            style={{
+              ...styles.sidebarBtn,
+              background:
+                "rgba(255, 0, 60, 0.15)",
+              border:
+                "1px solid rgba(255, 0, 60, 0.3)"
+            }}
+            onClick={() => {
+
+              localStorage.removeItem("user");
+
+              window.location.href =
+                "/login";
+
+            }}
+          >
+            Logout
+          </button>
+
+        </div>
+
+      )}
 
       {/* HEADER */}
+
       <div style={styles.header}>
 
         <div>
+
           <h1 style={styles.logo}>
             NovaCart
           </h1>
 
           <p style={styles.tagline}>
-             Secure Shopping<br />
-             Smarter Selling
+            Secure Shopping
+            <br />
+            Smarter Selling
           </p>
+
         </div>
 
         <div style={styles.headerButtons}>
 
           {/* LOGIN */}
+
           {!user && (
 
             <button
@@ -158,7 +222,8 @@ function ProductListingPage() {
                   "linear-gradient(135deg, #5e0017, #8b0026)"
               }}
               onClick={() =>
-                window.location.href = "/login"
+                window.location.href =
+                  "/login"
               }
             >
               Login
@@ -167,6 +232,7 @@ function ProductListingPage() {
           )}
 
           {/* MENU */}
+
           {user && (
 
             <button
@@ -184,8 +250,11 @@ function ProductListingPage() {
 
       </div>
 
-      {/* FILTER SECTION */}
+      {/* FILTERS */}
+
       <div style={styles.filterSection}>
+
+        {/* SEARCH */}
 
         <input
           type="text"
@@ -198,6 +267,7 @@ function ProductListingPage() {
         />
 
         {/* CATEGORY */}
+
         <select
           style={styles.select}
           value={category}
@@ -205,6 +275,7 @@ function ProductListingPage() {
             setCategory(e.target.value)
           }
         >
+
           <option value="All">
             All Categories
           </option>
@@ -244,6 +315,7 @@ function ProductListingPage() {
         </select>
 
         {/* SORT */}
+
         <select
           style={styles.select}
           value={sort}
@@ -251,6 +323,7 @@ function ProductListingPage() {
             setSort(e.target.value)
           }
         >
+
           <option value="">
             Sort By
           </option>
@@ -268,6 +341,7 @@ function ProductListingPage() {
       </div>
 
       {/* PRODUCTS GRID */}
+
       <div style={styles.grid}>
 
         {filteredProducts.map((product) => (
@@ -303,11 +377,11 @@ function ProductListingPage() {
                   ₹ {product.price}
                 </h3>
 
-              <span style={styles.rating}>
-                ⭐ {product.average_rating || 0}
-                {" "}
-                ({product.total_reviews || 0})
-              </span>
+                <span style={styles.rating}>
+                  ⭐ {product.average_rating || 0}
+                  {" "}
+                  ({product.total_reviews || 0})
+                </span>
 
               </div>
 
@@ -339,7 +413,6 @@ const styles = {
     fontFamily: "Poppins, sans-serif",
   },
 
-  // HEADER
   header: {
     display: "flex",
     justifyContent: "space-between",
@@ -364,7 +437,6 @@ const styles = {
     marginTop: "8px",
   },
 
-  // BUTTONS
   cartButton: {
     padding: "14px 30px",
     borderRadius: "15px",
@@ -390,7 +462,6 @@ const styles = {
     fontWeight: "bold",
   },
 
-  // SIDEBAR
   sidebar: {
     position: "fixed",
     top: "0",
@@ -420,7 +491,8 @@ const styles = {
 
   sidebarBtn: {
     padding: "16px",
-    border: "1px solid rgba(255,255,255,0.1)",
+    border:
+      "1px solid rgba(255,255,255,0.1)",
     borderRadius: "16px",
     background:
       "rgba(255,255,255,0.08)",
@@ -431,7 +503,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  // FILTERS
   filterSection: {
     display: "flex",
     gap: "20px",
@@ -465,7 +536,6 @@ const styles = {
     cursor: "pointer",
   },
 
-  // GRID
   grid: {
     display: "grid",
     gridTemplateColumns:
@@ -528,7 +598,8 @@ const styles = {
     width: "50px",
     height: "50px",
     borderRadius: "12px",
-    border: "1px solid rgba(255,255,255,0.12)",
+    border:
+      "1px solid rgba(255,255,255,0.12)",
     background:
       "rgba(255,255,255,0.08)",
     backdropFilter: "blur(12px)",

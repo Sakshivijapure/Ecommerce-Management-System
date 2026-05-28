@@ -4,11 +4,27 @@ import { useNavigate } from "react-router-dom";
 
 function HomePage() {
 
-  // ✅ NAVIGATION FIX (ONLY REQUIRED CHANGE)
+  // NAVIGATION
   const navigate = useNavigate();
 
   const [products, setProducts] = useState([]);
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  // SELLER REDIRECT
+  useEffect(() => {
+
+    const user = JSON.parse(
+      localStorage.getItem("user")
+    );
+
+    // IF SELLER LOGGED IN
+    if (user?.role === "Seller") {
+
+      navigate("/seller-dashboard");
+
+    }
+
+  }, []);
 
   // FETCH PRODUCTS
   useEffect(() => {
@@ -25,7 +41,9 @@ function HomePage() {
 
       })
       .catch((error) => {
+
         console.log(error);
+
       });
 
   }, []);
@@ -38,7 +56,9 @@ function HomePage() {
     const interval = setInterval(() => {
 
       setCurrentSlide((prev) =>
-        prev === products.length - 1 ? 0 : prev + 1
+        prev === products.length - 1
+          ? 0
+          : prev + 1
       );
 
     }, 2500);
@@ -52,6 +72,7 @@ function HomePage() {
     <div style={styles.page}>
 
       {/* NAVBAR */}
+
       <nav style={styles.navbar}>
 
         <h1 style={styles.logo}>
@@ -76,7 +97,8 @@ function HomePage() {
             Offers
           </a>
 
-          {/* ✅ LOGIN BUTTON FIXED */}
+          {/* LOGIN BUTTON */}
+
           <button
             style={styles.loginBtn}
             onClick={() => navigate("/login")}
@@ -89,17 +111,21 @@ function HomePage() {
       </nav>
 
       {/* HERO SECTION */}
+
       {products.length > 0 && (
 
         <div
           style={{
             ...styles.hero,
+
             backgroundImage: `
               linear-gradient(
                 rgba(0,0,0,0.55),
                 rgba(0,0,0,0.55)
               ),
-              url(http://127.0.0.1:8000/product_img/${products[currentSlide].image_url})
+              url(
+                http://127.0.0.1:8000/product_img/${products[currentSlide].image_url}
+              )
             `,
           }}
         >
@@ -111,17 +137,19 @@ function HomePage() {
             </p>
 
             <h1 style={styles.heroTitle}>
-              Secure Shopping<br />
+              Secure Shopping
+              <br />
               Smarter Selling
             </h1>
 
             <p style={styles.heroSubtitle}>
               Discover premium fashion,
-              electronics, accessories and more
-              at unbeatable prices.
+              electronics, accessories
+              and more at unbeatable prices.
             </p>
 
-            {/* ✅ EXPLORE BUTTON FIXED */}
+            {/* EXPLORE BUTTON */}
+
             <button
               style={styles.exploreBtn}
               onClick={() => navigate("/products")}
@@ -136,38 +164,82 @@ function HomePage() {
       )}
 
       {/* CATEGORIES */}
-      <section id="categories" style={styles.section}>
+
+      <section
+        id="categories"
+        style={styles.section}
+      >
+
         <h2 style={styles.sectionTitle}>
           Shop By Category
         </h2>
 
         <div style={styles.categoryGrid}>
 
-          <div style={styles.categoryCard}><h3>Fashion</h3></div>
-          <div style={styles.categoryCard}><h3>Electronics</h3></div>
-          <div style={styles.categoryCard}><h3>Accessories</h3></div>
-          <div style={styles.categoryCard}><h3>Home</h3></div>
+          <div style={styles.categoryCard}>
+            <h3>Fashion</h3>
+          </div>
+
+          <div style={styles.categoryCard}>
+            <h3>Electronics</h3>
+          </div>
+
+          <div style={styles.categoryCard}>
+            <h3>Accessories</h3>
+          </div>
+
+          <div style={styles.categoryCard}>
+            <h3>Home</h3>
+          </div>
 
         </div>
+
       </section>
 
       {/* BRANDS */}
-      <section id="brands" style={styles.section}>
+
+      <section
+        id="brands"
+        style={styles.section}
+      >
+
         <h2 style={styles.sectionTitle}>
           Featured Brands
         </h2>
 
         <div style={styles.brandContainer}>
-          <div style={styles.brandCard}>Nike</div>
-          <div style={styles.brandCard}>Samsung</div>
-          <div style={styles.brandCard}>Sony</div>
-          <div style={styles.brandCard}>Dell</div>
-          <div style={styles.brandCard}>Adidas</div>
+
+          <div style={styles.brandCard}>
+            Nike
+          </div>
+
+          <div style={styles.brandCard}>
+            Samsung
+          </div>
+
+          <div style={styles.brandCard}>
+            Sony
+          </div>
+
+          <div style={styles.brandCard}>
+            Dell
+          </div>
+
+          <div style={styles.brandCard}>
+            Adidas
+          </div>
+
         </div>
+
       </section>
 
       {/* OFFERS */}
-      <section id="offers" style={styles.discountBanner}>
+
+      <section
+        id="offers"
+        style={styles.discountBanner}
+      >
+
         <p style={styles.discountText}>
           UP TO 50% OFF
         </p>
@@ -175,10 +247,13 @@ function HomePage() {
         <h1 style={styles.discountTitle}>
           Summer Sale Collection
         </h1>
+
       </section>
 
       {/* FEATURES */}
+
       <section style={styles.section}>
+
         <h2 style={styles.sectionTitle}>
           Why Choose EasyCart
         </h2>
@@ -186,30 +261,54 @@ function HomePage() {
         <div style={styles.featureGrid}>
 
           <div style={styles.featureCard}>
+
             <h3>Fast Delivery</h3>
-            <p>Quick and reliable shipping across India.</p>
+
+            <p>
+              Quick and reliable shipping
+              across India.
+            </p>
+
           </div>
 
           <div style={styles.featureCard}>
+
             <h3>Secure Payment</h3>
-            <p>100% safe and trusted payment methods.</p>
+
+            <p>
+              100% safe and trusted
+              payment methods.
+            </p>
+
           </div>
 
           <div style={styles.featureCard}>
+
             <h3>Premium Quality</h3>
-            <p>Best quality products from trusted brands.</p>
+
+            <p>
+              Best quality products
+              from trusted brands.
+            </p>
+
           </div>
 
         </div>
+
       </section>
 
       {/* FOOTER */}
+
       <footer style={styles.footer}>
+
         <h2 style={styles.footerLogo}>
           EasyCart
         </h2>
 
-        <p>Shop smart. Live better.</p>
+        <p>
+          Shop smart. Live better.
+        </p>
+
       </footer>
 
     </div>
