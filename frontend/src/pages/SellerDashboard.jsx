@@ -9,6 +9,7 @@ import {
   IndianRupee,
   LogOut,
   AlertTriangle,
+  MessageSquare,
 } from "lucide-react";
 
 import {
@@ -141,7 +142,7 @@ function SellerDashboard() {
       <div style={styles.sidebar}>
 
         <h1 style={styles.logo}>
-          NovaCart
+          EasyCart
         </h1>
 
         <div style={styles.profileCard}>
@@ -184,6 +185,12 @@ function SellerDashboard() {
             onClick={() => window.location.href = "/seller-returns"}>
             <RotateCcw size={20} />
             Returns
+          </button>
+
+          <button style={styles.menuButton}
+            onClick={() => window.location.href = "/seller-reviews"}>
+            <MessageSquare size={20} />
+            Reviews
           </button>
 
         </div>
