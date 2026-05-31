@@ -205,7 +205,7 @@ function OrdersPage() {
   return (
     <div style={styles.page}>
       <div style={styles.header}>
-        <button style={styles.backBtn} onClick={() => window.history.back()}>
+        <button style={styles.backBtn} onClick={() => window.location.href = "/products"}>
           ← Back
         </button>
         <h1 style={styles.heading}>My Orders</h1>
