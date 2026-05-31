@@ -27,7 +27,7 @@ def seller_product_sentiment(seller_id: int):
 
             SUM(
                 CASE
-                    WHEN r.sentiment_score >= 0.75
+                    WHEN r.sentiment_label = 'POSITIVE'
                     THEN 1
                     ELSE 0
                 END
@@ -35,8 +35,7 @@ def seller_product_sentiment(seller_id: int):
 
             SUM(
                 CASE
-                    WHEN r.sentiment_score >= 0.40
-                    AND r.sentiment_score < 0.75
+                    WHEN r.sentiment_label = 'NEUTRAL'
                     THEN 1
                     ELSE 0
                 END
@@ -44,12 +43,12 @@ def seller_product_sentiment(seller_id: int):
 
             SUM(
                 CASE
-                    WHEN r.sentiment_score < 0.40
+                    WHEN r.sentiment_label = 'NEGATIVE'
                     THEN 1
                     ELSE 0
                 END
             ) AS negative_reviews
-
+                   
         FROM product p
 
         LEFT JOIN review r
@@ -112,14 +111,15 @@ def seller_product_sentiment(seller_id: int):
             SELECT
                 review_text,
                 rating,
-                sentiment_score
+                sentiment_score,
+                sentiment_label
 
             FROM review
 
             WHERE product_id = %s
-            AND sentiment_score >= 0.75
+            AND sentiment_label = 'POSITIVE'
 
-            ORDER BY sentiment_score DESC
+            ORDER BY review_id DESC
 
             LIMIT 3
 
@@ -134,14 +134,15 @@ def seller_product_sentiment(seller_id: int):
             SELECT
                 review_text,
                 rating,
-                sentiment_score
+                sentiment_score,
+                sentiment_label
 
             FROM review
 
             WHERE product_id = %s
-            AND sentiment_score < 0.40
+            AND sentiment_label = 'NEGATIVE'
 
-            ORDER BY sentiment_score ASC
+            ORDER BY review_id DESC
 
             LIMIT 3
 
@@ -173,8 +174,6 @@ def seller_product_sentiment(seller_id: int):
             "neutral_percent": neutral_percent,
 
             "negative_percent": negative_percent,
-
-            # IMPORTANT
 
             "positive_reviews_list":
                 positive_reviews_list,

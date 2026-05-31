@@ -2,9 +2,15 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
 from database.db import get_db_connection
+from services.sentiment import analyze_sentiment
 
 router = APIRouter()
 
+class ReviewModel(BaseModel):
+    user_id: int
+    product_id: int
+    rating: int
+    review_text: str
 
 # ---------------- GET ORDERS ----------------
 
@@ -248,6 +254,103 @@ def create_return_request(data: ReturnRequestModel):
             conn.close()
 
 
+# ---------------- ADD REVIEW ----------------
+
+@router.post("/add-review")
+def add_review(data: ReviewModel):
+
+    conn = None
+    cursor = None
+
+    try:
+
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # CHECK IF REVIEW ALREADY EXISTS
+        cursor.execute("""
+            SELECT review_id
+            FROM review
+            WHERE user_id = %s
+            AND product_id = %s
+        """, (
+            data.user_id,
+            data.product_id
+        ))
+
+        if cursor.fetchone():
+
+            raise HTTPException(
+                status_code=400,
+                detail="Review already submitted"
+            )
+
+        # SENTIMENT ANALYSIS
+        label, score = analyze_sentiment(
+            data.review_text
+        )
+
+        # INSERT REVIEW
+        cursor.execute("""
+            INSERT INTO review
+            (
+                user_id,
+                product_id,
+                rating,
+                review_text,
+                sentiment_score,
+                sentiment_label
+            )
+            VALUES
+            (
+                %s,
+                %s,
+                %s,
+                %s,
+                %s,
+                %s
+            )
+        """, (
+            data.user_id,
+            data.product_id,
+            data.rating,
+            data.review_text,
+            score,
+            label
+        ))
+
+        conn.commit()
+
+        return {
+            "message": "Review submitted successfully",
+            "sentiment": label,
+            "score": score
+        }
+
+    except HTTPException as e:
+        raise e
+
+    except Exception as e:
+
+        print("ADD REVIEW ERROR:", e)
+
+        if conn:
+            conn.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()
+
+
 # ---------------- CANCEL ORDER ----------------
 
 class CancelOrderModel(BaseModel):
@@ -297,7 +400,7 @@ def cancel_order(data: CancelOrderModel):
                 status_code=400,
                 detail="Order already cancelled"
             )
-        
+
         # RESTORE PRODUCT STOCK
         cursor.execute("""
             SELECT product_id, quantity

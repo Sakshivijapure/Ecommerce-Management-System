@@ -11,6 +11,11 @@ function OrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [returnReason, setReturnReason] = useState("");
 
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [selectedReviewOrder, setSelectedReviewOrder] = useState(null);
+  const [reviewText, setReviewText] = useState("");
+  const [rating, setRating] = useState(5);
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -72,11 +77,57 @@ function OrdersPage() {
     setShowReturnForm(true);
   };
 
+  const openReviewForm = (order) => {
+    setSelectedReviewOrder(order);
+    setShowReviewForm(true);
+  };
+
+  const submitReview = async () => {
+
+    if (!reviewText.trim()) {
+      alert("Please enter review");
+      return;
+    }
+
+    try {
+
+      const user = JSON.parse(
+        localStorage.getItem("user")
+      );
+
+      await axios.post(
+        "http://localhost:8000/add-review",
+        {
+          user_id: user.user_id,
+          product_id: selectedReviewOrder.item.product_id,
+          rating: rating,
+          review_text: reviewText
+        }
+      );
+
+      alert("Review submitted successfully");
+
+      setShowReviewForm(false);
+      setReviewText("");
+      setRating(5);
+      setSelectedReviewOrder(null);
+
+    } catch (err) {
+
+      console.log(err);
+
+      alert(
+        err.response?.data?.detail ||
+        "Failed to submit review"
+      );
+    }
+  };
+
   const submitReturn = async () => {
     if (!returnReason.trim()) {
       alert("Please enter return reason");
       return;
-    }
+    };
 
     try {
       const user = JSON.parse(localStorage.getItem("user"));
@@ -269,6 +320,12 @@ function OrdersPage() {
                   Return / Exchange
                 </button>
               )}
+                <button
+                  style={styles.reviewBtn}
+                  onClick={() => openReviewForm(order)}
+                >
+                  Write Review
+                </button>
             </div>
           </div>
         ))}
@@ -331,6 +388,70 @@ function OrdersPage() {
           </div>
         </div>
       )}
+
+    {showReviewForm && (
+        <div style={styles.popupOverlay}>
+          <div style={styles.popup}>
+
+            <h2>Write Review</h2>
+
+            <select
+              value={rating}
+              onChange={(e) =>
+                setRating(Number(e.target.value))
+              }
+              style={{
+                width: "100%",
+                padding: "10px",
+                marginBottom: "10px"
+              }}
+            >
+              <option value={5}>5 Stars</option>
+              <option value={4}>4 Stars</option>
+              <option value={3}>3 Stars</option>
+              <option value={2}>2 Stars</option>
+              <option value={1}>1 Star</option>
+            </select>
+
+            <textarea
+              placeholder="Write your review..."
+              value={reviewText}
+              onChange={(e) =>
+                setReviewText(e.target.value)
+              }
+              style={styles.textarea}
+            />
+
+            <div
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "20px"
+              }}
+            >
+              <button
+                style={styles.submitBtn}
+                onClick={submitReview}
+              >
+                Submit
+              </button>
+
+              <button
+                style={styles.closeBtn}
+                onClick={() => {
+                  setShowReviewForm(false);
+                  setReviewText("");
+                  setRating(5);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )
+    }
     </div>
   );
 }
@@ -383,6 +504,17 @@ const styles = {
   sectionTitle: {
     fontSize: "30px",
     color: "#ffd6e0"
+  },
+
+  reviewBtn: {
+    marginTop: "10px",
+    marginLeft: "10px",
+    background: "#00b894",
+    color: "white",
+    padding: "8px 12px",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
   },
 
   orderCard: {
