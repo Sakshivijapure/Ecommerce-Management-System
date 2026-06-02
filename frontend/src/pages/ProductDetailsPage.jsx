@@ -10,6 +10,7 @@ function ProductDetailsPage() {
   const [mainImage, setMainImage] = useState("");
   const [qty, setQty] = useState(1);
   const [liked, setLiked] = useState(false);
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
 
   // GET PRODUCT
   useEffect(() => {
@@ -24,6 +25,18 @@ function ProductDetailsPage() {
         if (res.data.images?.length > 0) {
           setMainImage(res.data.images[0]);
         }
+      })
+
+      .catch((err) => console.log(err));
+
+    // GET RECOMMENDATIONS
+    axios
+      .get(`http://127.0.0.1:8000/content/${id}`)
+
+      .then((res) => {
+
+        setRecommendedProducts(res.data);
+
       })
 
       .catch((err) => console.log(err));
@@ -129,14 +142,14 @@ function ProductDetailsPage() {
   // BUY NOW
   const handleBuyNow = () => {
 
-  const user = checkLogin();
+    const user = checkLogin();
 
-  if (!user) return;
+    if (!user) return;
 
-  // go to checkout page with product id + quantity
-  window.location.href =
-    `/checkout?product_id=${product.product_id}&qty=${qty}`;
-};
+    // go to checkout page with product id + quantity
+    window.location.href =
+      `/checkout?product_id=${product.product_id}&qty=${qty}`;
+  };
 
   // NEXT IMAGE
   const nextImage = () => {
@@ -424,6 +437,49 @@ function ProductDetailsPage() {
 
       </div>
 
+      {/* RECOMMENDED PRODUCTS */}
+
+      <div style={styles.recommendationSection}>
+
+        <h2 style={styles.recommendationTitle}>
+          Recommended Products
+        </h2>
+
+        <div style={styles.recommendationGrid}>
+
+          {recommendedProducts.map((item) => (
+
+            <div
+              key={item.product_id}
+              style={styles.recommendationCard}
+              onClick={() =>
+                window.location.href =
+                `/product/${item.product_id}`
+              }
+            >
+
+              <img
+                src={`http://127.0.0.1:8000/product_img/${item.image_url}`}
+                alt={item.name}
+                style={styles.recommendationImage}
+              />
+
+              <h3 style={styles.recommendationName}>
+                {item.name}
+              </h3>
+
+              <p style={styles.recommendationPrice}>
+                ₹ {item.price}
+              </p>
+
+            </div>
+
+          ))}
+
+        </div>
+
+      </div>
+
     </div>
   );
 }
@@ -679,6 +735,49 @@ const styles = {
 
   reviewUser: {
     color: "#ccc",
+  },
+
+  recommendationSection: {
+    marginTop: "60px",
+  },
+
+  recommendationTitle: {
+    color: "white",
+    marginBottom: "25px",
+  },
+
+  recommendationGrid: {
+    display: "grid",
+    gridTemplateColumns:
+      "repeat(auto-fit, minmax(220px, 1fr))",
+    gap: "20px",
+  },
+
+  recommendationCard: {
+    background: "rgba(255,255,255,0.08)",
+    borderRadius: "18px",
+    overflow: "hidden",
+    cursor: "pointer",
+    transition: "0.3s",
+    paddingBottom: "15px",
+  },
+
+  recommendationImage: {
+    width: "100%",
+    height: "220px",
+    objectFit: "cover",
+  },
+
+  recommendationName: {
+    color: "white",
+    padding: "15px",
+    fontSize: "18px",
+  },
+
+  recommendationPrice: {
+    color: "#ffcc70",
+    paddingLeft: "15px",
+    fontWeight: "bold",
   },
 };
 

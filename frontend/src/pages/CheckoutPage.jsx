@@ -32,6 +32,8 @@ function CheckoutPage() {
   const buyNowQty = Number(searchParams.get("qty")) || 1;
   const isFromCart = searchParams.get("from") === "cart";
 
+  const [recommendedProducts, setRecommendedProducts] = useState([]);
+
   useEffect(() => {
     if (buyNowProductId) {
       axios
@@ -55,6 +57,31 @@ function CheckoutPage() {
         .catch((err) => console.log("CART FETCH ERROR:", err));
     }
   }, [buyNowProductId, buyNowQty, isFromCart, user?.user_id]);
+
+  useEffect(() => {
+    if (checkoutItems.length === 0) return;
+
+    console.log("CHECKOUT ITEMS:", checkoutItems);
+
+    axios
+      .post(
+        "http://127.0.0.1:8000/collaborative",
+        {
+          product_ids: checkoutItems.map(
+            item => item.product_id
+          )
+        }
+      )
+      .then((res) => {
+        console.log("RECOMMENDATIONS RESPONSE:", res.data);
+        setRecommendedProducts(res.data);
+      })
+      .catch((err) => {
+        console.log("RECOMMENDATION ERROR:", err);
+        console.log("RECOMMENDATION ERROR RESPONSE:", err.response);
+      });
+
+  }, [checkoutItems]);
 
   // FETCH USER + ADDRESS
   useEffect(() => {
@@ -180,6 +207,14 @@ function CheckoutPage() {
 
   return (
     <div style={styles.page}>
+
+      {/* BACK BUTTON */}
+      <button
+        style={styles.backBtn}
+        onClick={() => window.history.back()}
+      >
+        ← Back
+      </button>
       {/* HEADER */}
       <div style={styles.header}>
         <h1 style={styles.logo}>EasyCart Checkout</h1>
@@ -352,6 +387,52 @@ function CheckoutPage() {
             >
               {loading ? "Processing..." : "Place Order"}
             </button>
+            {recommendedProducts.length > 0 && (
+              <>
+                <h3
+                  style={{
+                    color: "white",
+                    marginTop: "30px",
+                    marginBottom: "15px"
+                  }}
+                >
+                  Recommended For You
+                </h3>
+
+                {recommendedProducts.map((product) => {
+
+                  const imgUrl = product.image_url?.startsWith("http")
+                    ? product.image_url
+                    : `http://127.0.0.1:8000/product_img/${product.image_url}`;
+
+                  return (
+                    <div
+                      key={product.product_id}
+                      style={styles.recommendCard}
+                      onClick={() =>
+                        window.location.href = `/product/${product.product_id}`
+                      }
+                    >
+                      <img
+                        src={imgUrl}
+                        alt={product.name}
+                        style={styles.recommendImage}
+                      />
+
+                      <div style={{ flex: 1 }}>
+                        <div style={styles.recommendName}>
+                          {product.name}
+                        </div>
+
+                        <div style={styles.recommendPrice}>
+                          ₹ {product.price}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -374,6 +455,16 @@ const styles = {
     fontSize: "42px" 
   },
 
+  backBtn: {
+    padding: "10px 18px",
+    borderRadius: "10px",
+    border: "none",
+    cursor: "pointer",
+    background: "white",
+    marginBottom: "25px",
+    fontWeight: "bold",
+  },
+
   container: { 
     display: "flex", 
     gap: "30px", 
@@ -385,9 +476,48 @@ const styles = {
     minWidth: "320px" 
   },
 
+  recommendCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "15px",
+    padding: "12px",
+    background: "rgba(255,255,255,0.06)",
+    borderRadius: "12px",
+  },
+
+  recommendImage: {
+    width: "70px",
+    height: "70px",
+    objectFit: "cover",
+    borderRadius: "10px",
+  },
+
+  recommendName: {
+    color: "white",
+    fontWeight: "600",
+    marginBottom: "6px",
+  },
+
+  recommendPrice: {
+    color: "#ffcc70",
+    fontWeight: "700",
+  },
+
   rightSection: { 
     flex: 1, 
     minWidth: "320px" 
+  },
+
+  recommendCard: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+    marginBottom: "15px",
+    padding: "12px",
+    background: "rgba(255,255,255,0.06)",
+    borderRadius: "12px",
+    cursor: "pointer"
   },
   
   card: {

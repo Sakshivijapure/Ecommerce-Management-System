@@ -355,6 +355,13 @@ def create_order(data: OrderModel):
 
         created_orders = []
 
+        cursor.execute("""
+            SELECT COALESCE(MAX(group_id), 0) + 1 AS next_group_id
+            FROM orders
+        """)
+
+        group_id = cursor.fetchone()["next_group_id"]
+
         # CREATE ORDERS
         for calc_item in calculated_items:
 
@@ -400,15 +407,18 @@ def create_order(data: OrderModel):
                     address_id,
                     total_amount,
                     payment_status,
-                    order_status
+                    order_status,
+                    group_id
+
                 )
-                VALUES (%s,%s,%s,%s,%s)
+                VALUES (%s,%s,%s,%s,%s,%s)
             """, (
                 data.user_id,
                 data.address_id,
                 item_total,
                 order_table_payment_status,
-                "PLACED"
+                "PLACED",
+                group_id
             ))
 
             order_id = cursor.lastrowid
