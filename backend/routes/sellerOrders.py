@@ -154,6 +154,21 @@ def update_order_status(data: StatusUpdateModel):
             data.order_id
         ))
 
+        # UPDATE PAYMENT WHEN DELIVERED
+        if data.order_status == "DELIVERED":
+
+            cursor.execute("""
+                UPDATE payment
+                SET payment_status = 'SUCCESS'
+                WHERE order_id = %s
+            """, (data.order_id,))
+            
+            cursor.execute("""
+                UPDATE orders
+                SET payment_status = 'PAID'
+                WHERE order_id = %s
+            """, (data.order_id,))
+
         conn.commit()
 
         return {

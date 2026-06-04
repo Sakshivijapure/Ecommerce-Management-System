@@ -48,7 +48,7 @@ def get_products(category_id: int = Query(None)):
         if category_id is not None:
 
             query += """
-                WHERE p.category_id = %s
+                AND p.category_id = %s
             """
 
             params.append(category_id)

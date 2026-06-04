@@ -420,3 +420,53 @@ def update_stock(product_id: int, action: str):
 
         if conn:
             conn.close()
+
+# ---------------- UPDATE PRICE ----------------
+@router.put("/update-price/{product_id}")
+def update_price(product_id: int, new_price: float):
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        if new_price <= 0:
+            raise HTTPException(
+                status_code=400,
+                detail="Price must be greater than 0"
+            )
+
+        cursor.execute("""
+            UPDATE product
+            SET price=%s
+            WHERE product_id=%s
+        """, (
+            new_price,
+            product_id
+        ))
+
+        conn.commit()
+
+        return {
+            "message": "Price updated successfully"
+        }
+
+    except Exception as e:
+
+        if conn:
+            conn.rollback()
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+    finally:
+
+        if cursor:
+            cursor.close()
+
+        if conn:
+            conn.close()

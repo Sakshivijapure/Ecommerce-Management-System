@@ -41,6 +41,7 @@ app.include_router(sellerReturns_router)
 app.include_router(sellerReviews_router)
 app.include_router(recommendation_router)
 
+
 # STATIC IMAGE FOLDER
 app.mount(
     "/product_img",

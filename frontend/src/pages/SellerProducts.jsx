@@ -25,6 +25,7 @@ function SellerProducts() {
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editedPrices, setEditedPrices] = useState({});
 
   const [form, setForm] = useState({
     category_id: "",
@@ -70,6 +71,23 @@ function SellerProducts() {
 
   const handleImages = (e) => {
     setImages(Array.from(e.target.files));
+  };
+
+  const updatePrice = async (product_id) => {
+
+    try {
+
+      await axios.put(
+        `http://127.0.0.1:8000/update-price/${product_id}?new_price=${editedPrices[product_id]}`
+      );
+
+      fetchProducts();
+
+    } catch (err) {
+
+      console.log(err);
+
+    }
   };
 
 const addProduct = async (e) => {
@@ -288,6 +306,29 @@ const addProduct = async (e) => {
                 <p style={{ color: "#ddd" }}>{p.description}</p>
 
                 <h4 style={{ color: "#ffcc70" }}>₹ {p.price}</h4>
+                <div style={styles.priceRow}>
+
+                  <input
+                    type="number"
+                    value={editedPrices[p.product_id] ?? p.price}
+                    onChange={(e) =>
+                      setEditedPrices({
+                        ...editedPrices,
+                        [p.product_id]: e.target.value
+                      })
+                    }
+                    style={styles.priceInput}
+                  />
+
+                  <button
+                    style={styles.updatePriceBtn}
+                    onClick={() => updatePrice(p.product_id)}
+                    type="button"
+                  >
+                    Update Price
+                  </button>
+
+                </div>
 
                 <p style={{ color: "#aaa" }}>Brand: {p.brand}</p>
 
@@ -367,6 +408,29 @@ const styles = {
     display: "grid",
     gridTemplateColumns: "repeat(3,1fr)",
     gap: "10px"
+  },
+
+  priceRow: {
+    display: "flex",
+    gap: "10px",
+    marginTop: "10px",
+    marginBottom: "10px"
+  },
+
+  priceInput: {
+    flex: 1,
+    padding: "8px",
+    borderRadius: "8px",
+    border: "none"
+  },
+
+  updatePriceBtn: {
+    padding: "8px 14px",
+    background: "#8b0026",
+    color: "white",
+    border: "none",
+    borderRadius: "8px",
+    cursor: "pointer"
   },
 
   input: {

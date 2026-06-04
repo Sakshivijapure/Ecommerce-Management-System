@@ -62,7 +62,6 @@ def signup(user: SignupModel):
                 detail="Email already exists"
             )
 
-
         hashed_password = pwd_context.hash(
             str(user.password)[:72]
         )
@@ -96,6 +95,7 @@ def signup(user: SignupModel):
 
         user_id = cursor.lastrowid
 
+        # CREATE SELLER TABLE ENTRY
         if user.role.strip().lower() == "seller":
 
             seller_query = """
@@ -171,6 +171,7 @@ def login(user: LoginModel):
             u.email,
             u.phone,
             u.role,
+            u.account_status,
             u.password_hash,
 
             s.seller_id,
@@ -192,8 +193,7 @@ def login(user: LoginModel):
 
         db_user = cursor.fetchone()
 
-
-
+        # USER NOT FOUND
         if not db_user:
 
             raise HTTPException(
@@ -201,7 +201,23 @@ def login(user: LoginModel):
                 detail="User not found"
             )
 
+        # ACCOUNT SUSPENDED
+        if db_user["account_status"] == "Suspended":
 
+            raise HTTPException(
+                status_code=403,
+                detail="Your account has been suspended by admin"
+            )
+
+        # ACCOUNT BLOCKED
+        if db_user["account_status"] == "Blocked":
+
+            raise HTTPException(
+                status_code=403,
+                detail="Your account has been blocked"
+            )
+
+        # PASSWORD CHECK
         password_match = pwd_context.verify(
             str(user.password)[:72],
             db_user["password_hash"]
@@ -213,7 +229,6 @@ def login(user: LoginModel):
                 status_code=401,
                 detail="Invalid password"
             )
-
 
         return {
 
