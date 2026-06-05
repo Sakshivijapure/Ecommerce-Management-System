@@ -62,6 +62,7 @@ def signup(user: SignupModel):
                 detail="Email already exists"
             )
 
+
         hashed_password = pwd_context.hash(
             str(user.password)[:72]
         )
@@ -95,7 +96,6 @@ def signup(user: SignupModel):
 
         user_id = cursor.lastrowid
 
-        # CREATE SELLER TABLE ENTRY
         if user.role.strip().lower() == "seller":
 
             seller_query = """
@@ -201,7 +201,6 @@ def login(user: LoginModel):
                 detail="User not found"
             )
 
-        # ACCOUNT SUSPENDED
         if db_user["account_status"] == "Suspended":
 
             raise HTTPException(
@@ -229,6 +228,7 @@ def login(user: LoginModel):
                 status_code=401,
                 detail="Invalid password"
             )
+
 
         return {
 

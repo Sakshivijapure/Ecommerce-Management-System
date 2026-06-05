@@ -11,3 +11,7 @@ python-dotenv
 python-multipart
 transformers
 torch
+scikit-learn
+pandas
+numpy
+joblib

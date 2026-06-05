@@ -20,7 +20,7 @@ import SellerProducts from "./pages/SellerProducts";
 import SellerOrdersPage from "./pages/SellerOrdersPage";
 import SellerReturnsPage from "./pages/SellerReturnsPage";
 import SellerReviewsPage from "./pages/SellerReviewsPage";
-
+import AdminDashboard from "./pages/AdminDashboard";
 
 function App() {
 
@@ -29,17 +29,34 @@ function App() {
   });
 
   const role = user?.role?.trim()?.toLowerCase();
+  const isAdmin = role === "admin";
+  const isSeller = role === "seller";
+  const isCustomer = role && role !== "seller" && role !== "admin";
 
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* ADMIN DASHBOARD */}
+        <Route
+          path="/admin"
+          element={
+            isAdmin ? (
+              <AdminDashboard />
+            ) : (
+              <Navigate to="/" replace />
+            )
+          }
+        />
 
         {/* HOME */}
         <Route
           path="/"
           element={
             user ? (
-              role === "seller" ? (
+              isAdmin ? (
+                <Navigate to="/admin" replace />
+              ) : isSeller ? (
                 <Navigate to="/seller-dashboard" replace />
               ) : (
                 <Navigate to="/products" replace />
@@ -55,7 +72,9 @@ function App() {
           path="/login"
           element={
             user ? (
-              role === "seller" ? (
+              isAdmin ? (
+                <Navigate to="/admin" replace />
+              ) : isSeller ? (
                 <Navigate to="/seller-dashboard" replace />
               ) : (
                 <Navigate to="/products" replace />
@@ -73,10 +92,10 @@ function App() {
         <Route
           path="/products"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <ProductListingPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -84,10 +103,10 @@ function App() {
         <Route
           path="/product/:id"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <ProductDetailsPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -95,10 +114,10 @@ function App() {
         <Route
           path="/cart"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <CartPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -106,10 +125,10 @@ function App() {
         <Route
           path="/checkout"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <CheckoutPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -117,10 +136,10 @@ function App() {
         <Route
           path="/orders"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <OrdersPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -128,10 +147,10 @@ function App() {
         <Route
           path="/wishlist"
           element={
-            role !== "seller" ? (
+            isCustomer ? (
               <WishlistPage />
             ) : (
-              <Navigate to="/seller-dashboard" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -140,10 +159,10 @@ function App() {
         <Route
           path="/seller-dashboard"
           element={
-            role === "seller" ? (
+            isSeller ? (
               <SellerDashboard />
             ) : (
-              <Navigate to="/products" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -151,10 +170,10 @@ function App() {
         <Route
           path="/seller-products"
           element={
-            role === "seller" ? (
+            isSeller ? (
               <SellerProducts />
             ) : (
-              <Navigate to="/products" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -162,10 +181,10 @@ function App() {
         <Route
           path="/seller-orders"
           element={
-            role === "seller" ? (
+            isSeller ? (
               <SellerOrdersPage />
             ) : (
-              <Navigate to="/products" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -173,10 +192,10 @@ function App() {
         <Route
           path="/seller-Returns"
           element={
-            role === "seller" ? (
+            isSeller ? (
               <SellerReturnsPage />
             ) : (
-              <Navigate to="/products" replace />
+              <Navigate to="/" replace />
             )
           }
         />
@@ -184,10 +203,10 @@ function App() {
         <Route
           path="/seller-reviews"
           element={
-            role === "seller" ? (
+            isSeller ? (
               <SellerReviewsPage />
             ) : (
-              <Navigate to="/products" replace />
+              <Navigate to="/" replace />
             )
           }
         />
