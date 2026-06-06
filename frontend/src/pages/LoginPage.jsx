@@ -91,12 +91,12 @@ function LoginPage({ setUser }) {
           <div style={styles.circleTop}></div>
           <div style={styles.circleBottom}></div>
 
-          <h1 style={styles.logo}>NovaCart</h1>
+          <h1 style={styles.logo}>EasyCart</h1>
 
           <p style={styles.tagline}>
-            Secure Shopping
-              <br />
-              Smarter Selling
+            Buy Better
+            <br />
+            Sell Smarter
           </p>
 
           <p style={styles.description}>
@@ -145,12 +145,7 @@ function LoginPage({ setUser }) {
               Login
             </button>
           </form>
-
-          <div style={styles.socialContainer}>
-            <button style={styles.socialButton}>Google</button>
-            <button style={styles.socialButton}>Apple</button>
-          </div>
-
+          
           <p style={styles.bottomText}>
             Don’t have an account?{" "}
             <Link to="/signup" style={styles.signupText}>

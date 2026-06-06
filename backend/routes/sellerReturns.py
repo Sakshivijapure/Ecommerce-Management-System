@@ -80,19 +80,22 @@ def auto_update_return_flow(return_id):
             return_id
         ))
 
-        # UPDATE PAYMENT STATUS
+        # UPDATE ORDER STATUS + PAYMENT STATUS
         if order_data:
 
             cursor.execute("""
 
-                UPDATE payment
+                UPDATE orders
 
-                SET payment_status = %s
+                SET
+                    payment_status = %s,
+                    order_status = %s
 
                 WHERE order_id = %s
 
             """, (
                 "REFUNDED",
+                "RETURNED",
                 order_data["order_id"]
             ))
 

@@ -14,7 +14,7 @@ from routes.sellerOrders import router as sellerOrders_router
 from routes.sellerReturns import router as sellerReturns_router
 from routes.sellerReviews import router as sellerReviews_router
 from routes.recommendation import router as recommendation_router
-from backend.routes.fraudDetection import router as fraudDetection_router
+from routes.fraudDetection import router as fraudDetection_router
 
 
 app = FastAPI()

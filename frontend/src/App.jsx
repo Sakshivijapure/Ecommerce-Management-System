@@ -29,6 +29,7 @@ function App() {
   });
 
   const role = user?.role?.trim()?.toLowerCase();
+
   const isAdmin = role === "admin";
   const isSeller = role === "seller";
   const isCustomer = role && role !== "seller" && role !== "admin";
@@ -89,10 +90,11 @@ function App() {
         <Route path="/signup" element={<Signup />} />
 
         {/* CUSTOMER ROUTES */}
+
         <Route
           path="/products"
           element={
-            isCustomer ? (
+            !isSeller && !isAdmin ? (
               <ProductListingPage />
             ) : (
               <Navigate to="/" replace />
@@ -103,7 +105,7 @@ function App() {
         <Route
           path="/product/:id"
           element={
-            isCustomer ? (
+            !isSeller && !isAdmin ? (
               <ProductDetailsPage />
             ) : (
               <Navigate to="/" replace />
@@ -156,6 +158,7 @@ function App() {
         />
 
         {/* SELLER ROUTES */}
+
         <Route
           path="/seller-dashboard"
           element={
@@ -212,7 +215,11 @@ function App() {
         />
 
         {/* FALLBACK */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+
+        <Route
+          path="*"
+          element={<Navigate to="/" replace />}
+        />
 
       </Routes>
     </BrowserRouter>

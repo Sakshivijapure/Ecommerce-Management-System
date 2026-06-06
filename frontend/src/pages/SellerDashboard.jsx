@@ -10,6 +10,9 @@ import {
   LogOut,
   AlertTriangle,
   MessageSquare,
+  User,
+  X,
+  Save,
 } from "lucide-react";
 
 import {
@@ -25,6 +28,14 @@ import {
 function SellerDashboard() {
 
   const [dashboard, setDashboard] = useState(null);
+
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
+  const [profileData, setProfileData] = useState({
+      username: "",
+      shop_name: "",
+      shop_description: "",
+    });
 
   useEffect(() => {
     fetchDashboard();
@@ -55,14 +66,60 @@ function SellerDashboard() {
       );
 
       if (res.data.success) {
+
         setDashboard(res.data);
+
+        setProfileData({
+          username:
+            res.data.seller?.username || "",
+
+          shop_name:
+            res.data.seller?.shop_name || "",
+
+          shop_description:
+            res.data.seller?.shop_description || "",
+        });
       }
 
     } catch (err) {
+
       console.log(err);
+
       alert("Failed To Load Dashboard");
     }
   };
+
+
+  const handleSaveProfile = async () => {
+
+    try {
+
+      const user = JSON.parse(
+        localStorage.getItem("user")
+      );
+
+      const sellerId =
+        user?.seller_id || user?.user_id;
+
+      await axios.put(
+        `http://127.0.0.1:8000/update-seller-profile/${sellerId}`,
+        profileData
+      );
+
+      alert("Profile Updated Successfully");
+
+      setShowProfileModal(false);
+
+      fetchDashboard();
+
+    } catch (error) {
+
+      console.log(error);
+
+      alert("Failed To Update Profile");
+    }
+  };
+
 
   const handleLogout = () => {
     localStorage.removeItem("user");
@@ -82,19 +139,25 @@ function SellerDashboard() {
   const stats = dashboard.stats || {};
 
   const revenueData =
-    dashboard.daily_orders?.map((item, index) => ({
-      day:
-        item.day ||
-        `Day ${index + 1}`,
-
-      revenue:
-        Number(item.orders || 0),
-    })) || [];
-
-  console.log(
-    "REVENUE DATA => ",
-    revenueData
-  );
+    dashboard.daily_orders?.map((item, index) => {
+      const raw = item.day || "";
+      let label = `Day ${index + 1}`;
+      if (raw) {
+        const d = new Date(raw);
+        if (!isNaN(d)) {
+          label = d.toLocaleDateString("en-IN", {
+            month: "short",
+            day: "numeric",
+          });
+        } else {
+          label = raw;
+        }
+      }
+      return {
+        day: label,
+        revenue: Number(item.revenue || 0),
+      };
+    }) || [];
 
   const topProducts =
     dashboard.top_products || [];
@@ -138,6 +201,103 @@ function SellerDashboard() {
   return (
     <div style={styles.page}>
 
+
+      {showProfileModal && (
+
+        <div style={styles.modalOverlay}>
+
+          <div style={styles.modal}>
+
+            <div style={styles.modalHeader}>
+
+              <h2>Edit Profile</h2>
+
+              <button
+                style={styles.closeBtn}
+                onClick={() =>
+                  setShowProfileModal(false)
+                }
+              >
+                <X size={22} />
+              </button>
+
+            </div>
+
+            <div style={styles.formGroup}>
+
+              <label style={styles.label}>
+                Username
+              </label>
+
+              <input
+                type="text"
+                value={profileData.username}
+                onChange={(e) =>
+                  setProfileData({
+                    ...profileData,
+                    username: e.target.value,
+                  })
+                }
+                style={styles.input}
+              />
+
+            </div>
+
+            <div style={styles.formGroup}>
+
+              <label style={styles.label}>
+                Shop Name
+              </label>
+
+              <input
+                type="text"
+                value={profileData.shop_name}
+                onChange={(e) =>
+                  setProfileData({
+                    ...profileData,
+                    shop_name: e.target.value,
+                  })
+                }
+                style={styles.input}
+              />
+
+            </div>
+
+            <div style={styles.formGroup}>
+
+              <label style={styles.label}>
+                Shop Description
+              </label>
+
+              <textarea
+                rows="5"
+                value={profileData.shop_description}
+                onChange={(e) =>
+                  setProfileData({
+                    ...profileData,
+                    shop_description:
+                      e.target.value,
+                  })
+                }
+                style={styles.textarea}
+              />
+
+            </div>
+
+            <button
+              style={styles.saveBtn}
+              onClick={handleSaveProfile}
+            >
+              <Save size={18} />
+              Save Changes
+            </button>
+
+          </div>
+
+        </div>
+
+      )}
+
       {/* SIDEBAR */}
       <div style={styles.sidebar}>
 
@@ -145,7 +305,10 @@ function SellerDashboard() {
           EasyCart
         </h1>
 
-        <div style={styles.profileCard}>
+        {/* PROFILE CARD */}
+        <div
+          style={styles.profileCard}
+          onClick={() => setShowProfileModal(true) }>
 
           <div style={styles.avatar}>
             {seller.shop_name?.charAt(0)}
@@ -159,6 +322,11 @@ function SellerDashboard() {
             {seller.email}
           </p>
 
+          <div style={styles.editProfileBtn}>
+            <User size={16} />
+            Edit Profile
+          </div>
+
         </div>
 
         <div style={styles.menuContainer}>
@@ -168,27 +336,30 @@ function SellerDashboard() {
             Dashboard
           </button>
 
-          <button style={styles.menuButton}
-            onClick={() => window.location.href = "/seller-orders"}>
+          <button
+            style={styles.menuButton}
+            onClick={() => window.location.href = "/seller-orders" }>
             <ShoppingBag size={20} />
             Orders
           </button>
 
-          <button 
+          <button
             style={styles.menuButton}
-            onClick={() => window.location.href = "/seller-Products"}>
+            onClick={() => window.location.href = "/seller-Products" }>
             <Package size={20} />
             Products
           </button>
 
-          <button style={styles.menuButton}
-            onClick={() => window.location.href = "/seller-returns"}>
+          <button
+            style={styles.menuButton}
+            onClick={() => window.location.href = "/seller-returns" }>
             <RotateCcw size={20} />
             Returns
           </button>
 
-          <button style={styles.menuButton}
-            onClick={() => window.location.href = "/seller-reviews"}>
+          <button
+            style={styles.menuButton}
+            onClick={() => window.location.href = "/seller-reviews" }>
             <MessageSquare size={20} />
             Reviews
           </button>
@@ -251,104 +422,121 @@ function SellerDashboard() {
         {/* CHART + SUMMARY */}
         <div style={styles.chartGrid}>
 
-          {/* REVENUE CHART */}
+          {/* REVENUE LINE GRAPH */}
           <div style={styles.chartCard}>
 
             <div style={styles.chartHeader}>
-
               <h2 style={styles.chartTitle}>
                 Revenue Trend
               </h2>
-
               <p style={styles.chartSub}>
-                Revenue analytics overview
+                Daily revenue earned (₹)
               </p>
-
             </div>
 
-            <div
-              style={{
-                width: "100%",
-                height: "320px",
-              }}
-            >
+            <div style={{ width: "100%", height: "320px", position: "relative" }}>
 
               {revenueData.length > 0 ? (
 
-                <ResponsiveContainer
-                  width="100%"
-                  height="100%"
-                >
+                <ResponsiveContainer width="100%" height="100%">
 
-                  <AreaChart data={revenueData}>
+                  <AreaChart
+                    data={revenueData}
+                    margin={{ top: 15, right: 20, left: 15, bottom: 35 }}
+                  >
 
                     <defs>
-
-                      <linearGradient
-                        id="revenueGradient"
-                        x1="0"
-                        y1="0"
-                        x2="0"
-                        y2="1"
-                      >
-
-                        <stop
-                          offset="5%"
-                          stopColor="#ff4d7a"
-                          stopOpacity={0.8}
-                        />
-
-                        <stop
-                          offset="95%"
-                          stopColor="#ff4d7a"
-                          stopOpacity={0}
-                        />
-
+                      <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%"  stopColor="#ff4d7a" stopOpacity={0.35} />
+                        <stop offset="95%" stopColor="#ff4d7a" stopOpacity={0}    />
                       </linearGradient>
-
                     </defs>
 
                     <CartesianGrid
-                      strokeDasharray="3 3"
-                      stroke="rgba(255,255,255,0.08)"
+                      strokeDasharray="4 4"
+                      stroke="rgba(255,255,255,0.07)"
+                      vertical={false}
                     />
 
                     <XAxis
                       dataKey="day"
-                      tick={{
-                        fill: "#fff",
+                      tick={{ fill: "#f3c7d2", fontSize: 11, fontFamily: "Poppins" }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.15)" }}
+                      tickLine={false}
+                      angle={-35}
+                      textAnchor="end"
+                      height={55}
+                      label={{
+                        value: "Days",
+                        position: "insideBottom",
+                        offset: 0,
+                        fill: "#f3c7d2",
                         fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: "Poppins",
                       }}
                     />
 
                     <YAxis
-                      tick={{
-                        fill: "#fff",
+                      tick={{ fill: "#f3c7d2", fontSize: 11, fontFamily: "Poppins" }}
+                      axisLine={{ stroke: "rgba(255,255,255,0.15)" }}
+                      tickLine={false}
+                      tickFormatter={(v) =>
+                        v >= 1000 ? `₹${(v / 1000).toFixed(0)}k` : `₹${v}`
+                      }
+                      label={{
+                        value: "Revenue (₹)",
+                        angle: -90,
+                        position: "insideLeft",
+                        offset: -5,
+                        fill: "#f3c7d2",
                         fontSize: 12,
+                        fontWeight: 600,
+                        fontFamily: "Poppins",
                       }}
                     />
 
                     <Tooltip
-                      formatter={(value) => [
-                        `${value}`,
-                        "Orders",
+                      formatter={(v) => [
+                        `₹${Number(v).toLocaleString("en-IN")}`,
+                        "Revenue",
                       ]}
-                      contentStyle={{
-                        background: "#2b0010",
-                        border: "none",
-                        borderRadius: "14px",
-                        color: "white",
+                      labelStyle={{
+                        color: "#ff4d7a",
+                        fontWeight: 700,
+                        fontSize: "13px",
+                        marginBottom: "4px",
                       }}
+                      contentStyle={{
+                        background: "rgba(30,0,12,0.97)",
+                        border: "1px solid rgba(255,77,122,0.5)",
+                        borderRadius: "12px",
+                        color: "white",
+                        fontFamily: "Poppins",
+                        fontSize: "13px",
+                        boxShadow: "0 8px 30px rgba(255,0,110,0.3)",
+                      }}
+                      cursor={{ stroke: "rgba(255,77,122,0.4)", strokeWidth: 1, strokeDasharray: "4 4" }}
                     />
 
                     <Area
                       type="monotone"
                       dataKey="revenue"
                       stroke="#ff4d7a"
-                      fill="url(#revenueGradient)"
-                      strokeWidth={4}
-                      dot={{ r: 5 }}
-                      activeDot={{ r: 8 }}
+                      strokeWidth={3}
+                      fill="url(#revGrad)"
+                      dot={{
+                        r: 4,
+                        fill: "#ff4d7a",
+                        stroke: "rgba(255,255,255,0.4)",
+                        strokeWidth: 2,
+                      }}
+                      activeDot={{
+                        r: 7,
+                        fill: "#ff006e",
+                        stroke: "white",
+                        strokeWidth: 2,
+                      }}
                     />
 
                   </AreaChart>
@@ -357,17 +545,21 @@ function SellerDashboard() {
 
               ) : (
 
-                <div
-                  style={{
-                    height: "100%",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    color: "#f3c7d2",
-                    fontSize: "18px",
-                  }}
-                >
-                  No revenue data available
+                <div style={{
+                  height: "100%",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: "10px",
+                  color: "#f3c7d2",
+                  fontSize: "16px",
+                }}>
+                  <span style={{ fontSize: "36px" }}>📊</span>
+                  No revenue data yet
+                  <span style={{ fontSize: "13px", opacity: 0.6 }}>
+                    Orders will appear here once placed
+                  </span>
                 </div>
 
               )}
@@ -616,6 +808,7 @@ const styles = {
     padding: "28px",
     textAlign: "center",
     marginBottom: "35px",
+    cursor: "pointer",
   },
 
   avatar: {
@@ -641,6 +834,20 @@ const styles = {
     color: "#f3c7d2",
     marginTop: "8px",
     fontSize: "14px",
+  },
+
+  editProfileBtn: {
+    marginTop: "18px",
+    background:
+      "linear-gradient(135deg,#ff006e,#ff4d7a)",
+    padding: "10px",
+    borderRadius: "12px",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: "8px",
+    fontSize: "14px",
+    fontWeight: "600",
   },
 
   menuContainer: {
@@ -900,6 +1107,93 @@ const styles = {
     background:
       "linear-gradient(135deg,#ff006e,#ff4d7a)",
     fontWeight: "600",
+  },
+
+  modalOverlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    background: "rgba(0,0,0,0.7)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 999,
+  },
+
+  modal: {
+    width: "500px",
+    background:
+      "linear-gradient(135deg,#24000d,#470017)",
+    padding: "30px",
+    borderRadius: "24px",
+    border:
+      "1px solid rgba(255,255,255,0.1)",
+  },
+
+  modalHeader: {
+    display: "flex",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: "25px",
+  },
+
+  closeBtn: {
+    background: "transparent",
+    border: "none",
+    color: "white",
+    cursor: "pointer",
+  },
+
+  formGroup: {
+    marginBottom: "20px",
+  },
+
+  label: {
+    display: "block",
+    marginBottom: "10px",
+    color: "#f3c7d2",
+  },
+
+  input: {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "14px",
+    border: "none",
+    outline: "none",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    fontSize: "15px",
+  },
+
+  textarea: {
+    width: "100%",
+    padding: "14px",
+    borderRadius: "14px",
+    border: "none",
+    outline: "none",
+    background: "rgba(255,255,255,0.08)",
+    color: "white",
+    fontSize: "15px",
+    resize: "none",
+  },
+
+  saveBtn: {
+    width: "100%",
+    padding: "16px",
+    borderRadius: "16px",
+    border: "none",
+    background:
+      "linear-gradient(135deg,#ff006e,#ff4d7a)",
+    color: "white",
+    fontSize: "16px",
+    fontWeight: "600",
+    cursor: "pointer",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: "10px",
   },
 };
 
