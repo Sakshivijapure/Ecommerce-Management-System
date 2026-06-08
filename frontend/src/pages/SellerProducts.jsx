@@ -165,7 +165,7 @@ const addProduct = async (e) => {
       <div style={styles.sidebar}>
 
         <h1 style={styles.logo}>
-          EasyCart
+          NovaCart
         </h1>
 
         <div style={styles.menuContainer}>

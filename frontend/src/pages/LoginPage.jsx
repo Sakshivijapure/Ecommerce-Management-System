@@ -91,12 +91,12 @@ function LoginPage({ setUser }) {
           <div style={styles.circleTop}></div>
           <div style={styles.circleBottom}></div>
 
-          <h1 style={styles.logo}>EasyCart</h1>
+          <h1 style={styles.logo}>NovaCart</h1>
 
           <p style={styles.tagline}>
-            Buy Better
+            Secure Shopping
             <br />
-            Sell Smarter
+            Smarter Selling
           </p>
 
           <p style={styles.description}>

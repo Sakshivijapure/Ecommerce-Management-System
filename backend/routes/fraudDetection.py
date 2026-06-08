@@ -131,6 +131,7 @@ def get_seller_features():
         SELECT
             s.seller_id,
             s.shop_name,
+            u.user_id,
             u.account_status,
             COUNT(oi.order_item_id) AS seller_total_sales,
             SUM(CASE WHEN o.order_status IN ('RETURNED', 'RETURN_REQUESTED') THEN 1 ELSE 0 END) AS seller_returns,
@@ -140,7 +141,7 @@ def get_seller_features():
         LEFT JOIN product p ON s.seller_id = p.seller_id
         LEFT JOIN order_item oi ON oi.product_id = p.product_id
         LEFT JOIN orders o ON oi.order_id = o.order_id
-        GROUP BY s.seller_id, s.shop_name, u.account_status
+        GROUP BY s.seller_id, s.shop_name, u.user_id, u.account_status
     """)
     rows = cursor.fetchall()
     cursor.close()
@@ -155,6 +156,7 @@ def get_seller_features():
         results.append({
             "seller_id": row["seller_id"],
             "seller_name": row["shop_name"],
+            "user_id": row["user_id"],
             "account_status": row["account_status"],
             "seller_total_sales": sales,
             "seller_returns": returns,
@@ -235,62 +237,97 @@ def fraud_dashboard():
     repeated_review_list = []
     suspicious_seller_list = []
 
-    for c in customers:
-        rss, sim = get_review_features(c["customer_id"])
+    conn = get_db_connection()
+    cursor = conn.cursor()
 
-        features = {
-            "total_orders": c["total_orders"],
-            "returned_orders": c["returned_orders"],
-            "return_rate": c["return_rate_raw"],   
-            "cancelled_orders": c["cancelled_orders"],
-            "avg_order_value": c["avg_order_value"],
-            "seller_total_sales": 0,
-            "seller_returns": 0,
-            "seller_return_rate": 0,
-            "avg_rating": 0,
-            "negative_review_percent": 0,
-            "reviews_same_seller": rss,
-            "repeated_review_similarity": sim,                  
-        }
+    try:
+        for c in customers:
+            rss, sim = get_review_features(c["customer_id"])
 
-        fraud_type, score = run_model(features)
+            features = {
+                "total_orders": c["total_orders"],
+                "returned_orders": c["returned_orders"],
+                "return_rate": c["return_rate_raw"],   
+                "cancelled_orders": c["cancelled_orders"],
+                "avg_order_value": c["avg_order_value"],
+                "seller_total_sales": 0,
+                "seller_returns": 0,
+                "seller_return_rate": 0,
+                "avg_rating": 0,
+                "negative_review_percent": 0,
+                "reviews_same_seller": rss,
+                "repeated_review_similarity": sim,                  
+            }
 
-        c["fraud_type"] = fraud_type
-        c["fraud_score"] = score
-        c["reviews_same_seller"] = rss
-        c["review_similarity_pct"] = round(sim * 100, 1)         
+            fraud_type, score = run_model(features)
 
-        if fraud_type == "RETURN_ABUSE":
-            return_abuse_list.append(c)
-        elif fraud_type == "REPEATED_REVIEW":
-            repeated_review_list.append(c)
+            c["fraud_type"] = fraud_type
+            c["fraud_score"] = score
+            c["reviews_same_seller"] = rss
+            c["review_similarity_pct"] = round(sim * 100, 1)         
 
-    for s in sellers:
-        neg_pct = get_negative_review_percent(s["seller_id"])
+            # Sync with database
+            if fraud_type != "NONE":
+                cursor.execute("""
+                    INSERT INTO fraud_flag (user_id, fraud_type, fraud_score)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        fraud_type = VALUES(fraud_type),
+                        fraud_score = VALUES(fraud_score)
+                """, (c["customer_id"], fraud_type, score))
+            else:
+                cursor.execute("DELETE FROM fraud_flag WHERE user_id = %s", (c["customer_id"],))
 
-        features = {
-            "total_orders": 0,
-            "returned_orders": 0,
-            "return_rate": 0,
-            "cancelled_orders": 0,
-            "avg_order_value": 0,
-            "seller_total_sales": s["seller_total_sales"],
-            "seller_returns": s["seller_returns"],
-            "seller_return_rate": s["seller_return_rate_raw"],  
-            "avg_rating": s["avg_rating"],
-            "negative_review_percent": neg_pct,
-            "reviews_same_seller": 0,
-            "repeated_review_similarity": 0,
-        }
+            if fraud_type == "RETURN_ABUSE":
+                return_abuse_list.append(c)
+            elif fraud_type == "REPEATED_REVIEW":
+                repeated_review_list.append(c)
 
-        fraud_type, score = run_model(features)
+        for s in sellers:
+            neg_pct = get_negative_review_percent(s["seller_id"])
 
-        s["fraud_type"] = fraud_type
-        s["fraud_score"] = score
-        s["negative_review_percent"] = neg_pct
+            features = {
+                "total_orders": 0,
+                "returned_orders": 0,
+                "return_rate": 0,
+                "cancelled_orders": 0,
+                "avg_order_value": 0,
+                "seller_total_sales": s["seller_total_sales"],
+                "seller_returns": s["seller_returns"],
+                "seller_return_rate": s["seller_return_rate_raw"],  
+                "avg_rating": s["avg_rating"],
+                "negative_review_percent": neg_pct,
+                "reviews_same_seller": 0,
+                "repeated_review_similarity": 0,
+            }
 
-        if fraud_type == "SELLER_SUSPICIOUS":
-            suspicious_seller_list.append(s)
+            fraud_type, score = run_model(features)
+
+            s["fraud_type"] = fraud_type
+            s["fraud_score"] = score
+            s["negative_review_percent"] = neg_pct
+
+            if fraud_type != "NONE":
+                cursor.execute("""
+                    INSERT INTO fraud_flag (user_id, fraud_type, fraud_score)
+                    VALUES (%s, %s, %s)
+                    ON DUPLICATE KEY UPDATE
+                        fraud_type = VALUES(fraud_type),
+                        fraud_score = VALUES(fraud_score)
+                """, (s["user_id"], fraud_type, score))
+            else:
+                cursor.execute("DELETE FROM fraud_flag WHERE user_id = %s", (s["user_id"],))
+
+            if fraud_type == "SELLER_SUSPICIOUS":
+                suspicious_seller_list.append(s)
+
+        conn.commit()
+    except Exception as db_err:
+        conn.rollback()
+        print("DATABASE SYNC ERROR in fraud_dashboard:", db_err)
+    finally:
+        cursor.close()
+        conn.close()
 
     return_abuse_list.sort(key=lambda x: x["fraud_score"], reverse=True)
     repeated_review_list.sort(key=lambda x: x["fraud_score"], reverse=True)

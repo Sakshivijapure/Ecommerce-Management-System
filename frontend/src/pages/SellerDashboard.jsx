@@ -302,7 +302,7 @@ function SellerDashboard() {
       <div style={styles.sidebar}>
 
         <h1 style={styles.logo}>
-          EasyCart
+          NovaCart
         </h1>
 
         {/* PROFILE CARD */}

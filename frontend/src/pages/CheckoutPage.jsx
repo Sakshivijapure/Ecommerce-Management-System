@@ -217,7 +217,7 @@ function CheckoutPage() {
       </button>
       {/* HEADER */}
       <div style={styles.header}>
-        <h1 style={styles.logo}>EasyCart Checkout</h1>
+        <h1 style={styles.logo}>NovaCart Checkout</h1>
       </div>
 
       <div style={styles.container}>
